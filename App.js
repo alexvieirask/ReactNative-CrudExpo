@@ -1,35 +1,88 @@
 import { StatusBar } from 'expo-status-bar';
 import React,{useState, useEffect} from 'react';
 import { StyleSheet,FlatList, Text, View, SafeAreaView, TextInput, TouchableOpacity,Keyboard } from 'react-native';
-import Pessoa from './services/sqlite/Pessoa';
-
+import db from './services/sqlite/SqLiteDatabase';
 
 export default function App() {
   const [nome,setNome] = useState('')
   const [email,setEmail] = useState('')
   const [idade,setIdade] = useState('')
-
-
-
   const [flatlistpessoas,setFlatlistPessoas] = useState([])
 
-  useEffect(()=>{
-    const dados = Pessoa.listPeople()
-    setFlatlistPessoas(dados)
-    console.log('2',dados)
+  const createTable = ()=>{
+    db.transaction((tx)=>{
+      tx.executeSql("CREATE TABLE IF NOT EXISTS pessoas (id INTEGER PRIMARY KEY AUTOINCREMENT, nome TEXT, email TEXT, idade int);",
+      [], )
+  })}
+
+  const addPessoa = (nome,email,idade) => {
+    if (!nome){
+      console.log("Digite pelo menos o nome")
+    }
+    else{
+      db.transaction((tx) => {
+        tx.executeSql(
+          "INSERT INTO pessoas (nome, email, idade) values (?, ?, ?);",
+          [nome, email, idade]
+        ); 
+        getPessoa()
+        setNome("")
+        setEmail("")
+        setIdade("")
+  
+      });
+    }
+
+  }
+
+  const getPessoa = () =>{
+    db.transaction((tx) => {
+      tx.executeSql( "SELECT * FROM pessoas",[],(tx,results)=>{
+        let lista = []
+          for (let i=0; i< results.rows.length; ++i){
+            let item = results.rows.item(i);
+            lista.push({id:item.id,
+                        nome:item.nome,
+                        email:item.email,
+                        idade:item.idade})} 
+                      setFlatlistPessoas(lista)})
+                    }
+                    );
+  }
+
+  const deletePessoas = () => {
+    db.transaction((tx) => {
+      tx.executeSql(
+        "DROP FROM pessoas",
+      );
+      getPessoa()
+    });
+  }
+  
+  const renderPessoa = ({ item }) => {
+    return (
+      <View style={{
+       flexDirection:'row',
+        paddingVertical: 12,
+        paddingHorizontal: 10,
+        borderBottomWidth: 1,
+        borderColor: "#ddd",
+      }}>
+        <Text style={{ marginRight: 9 }}>{item.id}</Text>
+        <Text style={{ marginRight: 9 }}>{item.nome}</Text>
+        <Text style={{ marginRight: 9 }}>{item.email}</Text>
+        <Text style={{ marginRight: 9 }}>{item.idade}</Text>
+      </View>
+    );
+  };
+
+  useEffect( ()=>{
+     createTable();
+     getPessoa();
   },[])
 
-  const adicionarpessoa = (nome,email,idade) =>{
-    Pessoa.insertPeople(nome,email,idade)
-    setNome("")
-    setEmail("")
-    setIdade("")
-    Keyboard.dismiss()
-  }
 
-  const deletartudo = ()=>{
-    Pessoa.deleteAllPeoples()
-  }
+  
 
 
   return (
@@ -43,7 +96,7 @@ export default function App() {
         <TextInput placeholder='E-mail'value={email} style={styles.TextInput} onChangeText={(email) => {setEmail(email)}} />
         <TextInput placeholder='idade' value={idade} style={styles.TextInput} onChangeText={(idade) => {setIdade(idade)}} />
         
-        <TouchableOpacity style={styles.Botao} onPress={()=>{adicionarpessoa(nome,email,idade)}}>
+        <TouchableOpacity style={styles.Botao} onPress={()=>{addPessoa(nome,email,idade)}}>
         <Text>Adicionar Pessoa</Text>
         </TouchableOpacity>
 
@@ -52,14 +105,11 @@ export default function App() {
         <FlatList
         data={flatlistpessoas}
         
-        keyExtractor={(index) => index.toString()}
-        renderItem={({item}) => 
-        <View style={{height:'100%',width:'100%',backgroundColor:'blue'}}>
-         <Text>{item}</Text> 
-          
-          </View>}/>
+        keyExtractor={item => item.id}
+        renderItem={renderPessoa}
+        />
         
-        <TouchableOpacity style={styles.Botao} onPress={()=>deletartudo()}>
+        <TouchableOpacity style={styles.Botao} onPress={()=>deletePessoas()}>
         <Text>Excluir dados</Text>
         </TouchableOpacity>
      
