@@ -1,0 +1,10 @@
+{
+  "expo": {
+    "name": "pessoa-crud",
+    "slug": "pessoa-crud",
+    "version": "1.0.0",
+    "assetBundlePatterns": [
+      "**/*"
+    ]
+  }
+}
