@@ -4,19 +4,23 @@ import { StyleSheet,FlatList, Text, View, SafeAreaView,Alert, TextInput, Touchab
 import db from './services/sqlite/SqLiteDatabase';
 
 export default function App() {
+  // criação dos inputs
   const [nome,setNome] = useState('')
   const [email,setEmail] = useState('')
   const [idade,setIdade] = useState('')
   const [id,setID] = useState('')
+  const [idAtualizar,setIDAtualizar] = useState('')
+  const [novoNome,setNovoNome] = useState('')
+  
+  // Flatlist
   const [flatlistpessoas,setFlatlistPessoas] = useState([])
 
-  const createTable = ()=>{
+  const createTable = ()=>{ // Criação da Tabela pessoas
     db.transaction((tx)=>{
       tx.executeSql("CREATE TABLE IF NOT EXISTS pessoas (id INTEGER PRIMARY KEY AUTOINCREMENT, nome TEXT, email TEXT, idade int);",
       [], )
   })}
-
-  const addPessoa = (nome,email,idade) => {
+  const addPessoa = (nome,email,idade) => { //Função que adiciona uma pessoa
     if (!nome){
       console.log("Digite pelo menos o nome")
     }
@@ -35,8 +39,7 @@ export default function App() {
     }
 
   }
-
-  const getPessoa = () =>{
+  const getPessoa = () =>{ //Função que atualiza a Flatlist e lista todas as pessoas
     db.transaction((tx) => {
       tx.executeSql( "SELECT * FROM pessoas",[],(tx,results)=>{
         let lista = []
@@ -50,8 +53,7 @@ export default function App() {
                     }
                     );
   }
-
-  const deletePessoas = () => {
+  const deletePessoas = () => { //Função que deleta todas as pessoas da tabela pessoas
     db.transaction((tx) => {
       tx.executeSql(
         "Delete FROM pessoas",
@@ -59,8 +61,7 @@ export default function App() {
       getPessoa()
     });
   }
-  
-  const deletePessoaById = (id) =>{
+  const deletePessoaById = (id) =>{ // Deletar pessoa por id
     db.transaction((tx)=>{
       tx.executeSql("Delete from pessoas where id = ?",
       [id],
@@ -71,24 +72,12 @@ export default function App() {
           setID('')
           )
         }else{
-          alert("Insira um id que exista na lista")
+          alert("Insira um id que exista na lista") }} 
+          )
         }
-      }
-        
-       
-        
-        
-        )
-      }
-      
-      
-      
       );
-
   }
-  
-  
-  const renderPessoa = ({ item }) => {
+  const renderPessoa = ({ item }) => { // Apenas o componente para aparecer na flatlist
     return (
       <View style={{
        flexDirection:'row',
@@ -99,41 +88,54 @@ export default function App() {
       }}>
         <Text style={{ marginRight: 9 }}>{item.id}</Text>
         <Text style={{ marginRight: 9 }}>{item.nome}</Text>
-        <Text style={{ marginRight: 9 }}>{item.email}</Text>
-        <Text style={{ marginRight: 9 }}>{item.idade}</Text>
+        <Text style={{ marginRight: 9 }}> {item.email}</Text>
+        <Text style={{ marginRight: 9 }}> {item.idade}</Text>
       </View>
     );
-  };
-
-  const dropdatabase = () =>{
+  }
+  const dropdatabase = () =>{ //Função que deleta a database - Para testes
     db.closeAsync()
-    db.deleteAsync()}
-    
+    db.deleteAsync()
+  }
+  const updatePessoa = () =>{ // Função que atualiza o nome de uma pessoa através do id
+    db.transaction((tx) => {
+      tx.executeSql(
+        "update pessoas set nome=? where id =?",
+        [novoNome,idAtualizar]
+      );
+      getPessoa()
+      setNovoNome("")
+      setIDAtualizar("")
+    });
+
+  }
       
-  
-
-
-  useEffect( ()=>{
+  useEffect( ()=>{ // Função que  é disparada na página inicialmente
      createTable();
      getPessoa();
-  },[])
-
-
-  
+  },[]
+  )
 
 
   return (
-    
-
-
-    <SafeAreaView style={styles.SafeAreaView}>
+  
+  <SafeAreaView style={styles.SafeAreaView}>
     <StatusBar style="auto" />
     
     <View style={styles.container}>
         <Text style={styles.titulo}>People Crud - Exposqlite</Text>
-        <TextInput placeholder='Nome' value={nome} style={styles.TextInput} onChangeText={(nome) => {setNome(nome)}} />
-        <TextInput placeholder='E-mail'value={email} style={styles.TextInput} onChangeText={(email) => {setEmail(email)}} />
-        <TextInput placeholder='idade' value={idade} style={styles.TextInput} onChangeText={(idade) => {setIdade(idade)}} />
+        
+        <TextInput placeholder='Nome' 
+        value={nome} style={styles.TextInput} 
+        onChangeText={(nome) => {setNome(nome)}} />
+        
+        <TextInput placeholder='E-mail'
+        value={email} style={styles.TextInput} 
+        onChangeText={(email) => {setEmail(email)}} />
+        
+        <TextInput placeholder='idade' 
+        value={idade} style={styles.TextInput} 
+        onChangeText={(idade) => {setIdade(idade)}} />
         
         <TouchableOpacity style={styles.Botao} onPress={()=>{addPessoa(nome,email,idade)}}>
         <Text>Adicionar Pessoa</Text>
@@ -141,39 +143,53 @@ export default function App() {
 
         <Text style={styles.subtitulo}>Pessoas Cadastradas</Text>
         
-        <FlatList
+        <FlatList //Lista com todas as pessoas
+        style={{height:50}}
         data={flatlistpessoas}
-        
-        keyExtractor={item => item.id}
-        renderItem={renderPessoa}
+        keyExtractor={item => item.id} // Definindo a Key, sendo esta o id da pessoa
+        renderItem={renderPessoa} 
         />
     
     <ScrollView>
-
-        <TextInput placeholder='id' value={id} style={styles.TextInput} onChangeText={(id) => {setID(id)}} />
-        
-        <TouchableOpacity style={styles.Botao} onPress={()=>deletePessoaById(id)}>
-        <Text>Excluir pessoa-id-</Text>
-        </TouchableOpacity>
-        
-
-
-
-
-        <View style={{marginTop:100}}>
-          <TouchableOpacity style={styles.Botao} onPress={()=>deletePessoas()}>
-          <Text>Excluir dados</Text>
+      <Text style={styles.subtitulo}>Funções de Excluir</Text>
+          <TextInput placeholder='id' 
+          value={id} style={styles.TextInput} 
+          onChangeText={(id) => {setID(id)}} />
+          
+          <TouchableOpacity style={styles.Botao} onPress={()=>deletePessoaById(id)}>
+          <Text>Excluir pessoa</Text>
           </TouchableOpacity>
+          
+          <View style={{marginTop:50}}>
+            <TouchableOpacity style={styles.Botao} onPress={()=>deletePessoas()}>
+            <Text>Excluir dados</Text>
+            </TouchableOpacity>
 
-    
-          <TouchableOpacity style={styles.Botao} onPress={()=>dropdatabase()}>
-          <Text>Excluir Database</Text>
-          </TouchableOpacity>
-        </View>
+            <TouchableOpacity style={styles.Botao} onPress={()=>dropdatabase()}>
+            <Text>Excluir Database</Text>
+            </TouchableOpacity>
+          </View>
 
-        </ScrollView>
+          <Text style={styles.subtitulo}>Funções de Update</Text>
+
+          <View style={{marginTop:10}}>
+            <TextInput placeholder='id para atualizar' 
+            value={idAtualizar} style={styles.TextInput} 
+            onChangeText={(id) => {setIDAtualizar(id)}} />
+
+            <TextInput placeholder='novo nome' 
+            value={novoNome} style={styles.TextInput} 
+            onChangeText={(nome) => {setNovoNome(nome)}} />
+
+            <TouchableOpacity style={styles.Botao} onPress={()=>updatePessoa()}>
+            <Text>Atualizar Pessoa</Text>
+            </TouchableOpacity>
+          </View>
+
+
+    </ScrollView>
     </View>
-    </SafeAreaView>
+  </SafeAreaView>
    
   );
 }
@@ -203,8 +219,7 @@ const styles = StyleSheet.create({
     backgroundColor:'#f0928b',
     justifyContent:'center',
     alignItems:'center',
-    marginTop:20,
-    marginBottom:20,
+    marginVertical:5,
     marginHorizontal:'25%',
     height:30,
     borderRadius:5
@@ -216,7 +231,8 @@ const styles = StyleSheet.create({
     borderRadius:10,
     alignItems:'center',
     padding:10,
-    marginVertical:2
+    marginVertical:2,
+    textAlign:'center'
   }
 });
 
