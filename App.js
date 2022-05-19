@@ -1,12 +1,13 @@
 import { StatusBar } from 'expo-status-bar';
 import React,{useState, useEffect} from 'react';
-import { StyleSheet,FlatList, Text, View, SafeAreaView, TextInput, TouchableOpacity,Keyboard } from 'react-native';
+import { StyleSheet,FlatList, Text, View, SafeAreaView,Alert, TextInput, TouchableOpacity,ScrollView } from 'react-native';
 import db from './services/sqlite/SqLiteDatabase';
 
 export default function App() {
   const [nome,setNome] = useState('')
   const [email,setEmail] = useState('')
   const [idade,setIdade] = useState('')
+  const [id,setID] = useState('')
   const [flatlistpessoas,setFlatlistPessoas] = useState([])
 
   const createTable = ()=>{
@@ -53,11 +54,39 @@ export default function App() {
   const deletePessoas = () => {
     db.transaction((tx) => {
       tx.executeSql(
-        "DROP FROM pessoas",
+        "Delete FROM pessoas",
       );
       getPessoa()
     });
   }
+  
+  const deletePessoaById = (id) =>{
+    db.transaction((tx)=>{
+      tx.executeSql("Delete from pessoas where id = ?",
+      [id],
+      (tx,results) =>{
+        if(results.rowsAffected>0){
+          Alert.alert("Sucesso! ID encontrado.",
+          getPessoa(),
+          setID('')
+          )
+        }else{
+          alert("Insira um id que exista na lista")
+        }
+      }
+        
+       
+        
+        
+        )
+      }
+      
+      
+      
+      );
+
+  }
+  
   
   const renderPessoa = ({ item }) => {
     return (
@@ -76,6 +105,14 @@ export default function App() {
     );
   };
 
+  const dropdatabase = () =>{
+    db.closeAsync()
+    db.deleteAsync()}
+    
+      
+  
+
+
   useEffect( ()=>{
      createTable();
      getPessoa();
@@ -86,6 +123,8 @@ export default function App() {
 
 
   return (
+    
+
 
     <SafeAreaView style={styles.SafeAreaView}>
     <StatusBar style="auto" />
@@ -108,15 +147,34 @@ export default function App() {
         keyExtractor={item => item.id}
         renderItem={renderPessoa}
         />
-        
-        <TouchableOpacity style={styles.Botao} onPress={()=>deletePessoas()}>
-        <Text>Excluir dados</Text>
-        </TouchableOpacity>
-     
-     
+    
+    <ScrollView>
 
+        <TextInput placeholder='id' value={id} style={styles.TextInput} onChangeText={(id) => {setID(id)}} />
+        
+        <TouchableOpacity style={styles.Botao} onPress={()=>deletePessoaById(id)}>
+        <Text>Excluir pessoa-id-</Text>
+        </TouchableOpacity>
+        
+
+
+
+
+        <View style={{marginTop:100}}>
+          <TouchableOpacity style={styles.Botao} onPress={()=>deletePessoas()}>
+          <Text>Excluir dados</Text>
+          </TouchableOpacity>
+
+    
+          <TouchableOpacity style={styles.Botao} onPress={()=>dropdatabase()}>
+          <Text>Excluir Database</Text>
+          </TouchableOpacity>
+        </View>
+
+        </ScrollView>
     </View>
     </SafeAreaView>
+   
   );
 }
 
@@ -145,8 +203,8 @@ const styles = StyleSheet.create({
     backgroundColor:'#f0928b',
     justifyContent:'center',
     alignItems:'center',
-    marginTop:10,
-    marginBottom:10,
+    marginTop:20,
+    marginBottom:20,
     marginHorizontal:'25%',
     height:30,
     borderRadius:5
