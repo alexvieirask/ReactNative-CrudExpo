@@ -69,7 +69,7 @@ export default function App() {
   //Função que sincroniza a flatlist com os dados do banco de dados
   const AddFlatlist = () => {
     db.transaction((tx) => {
-      // O [] Serve para dar a instrução que o resultado sera colodo na lista
+      // O [] Serve para dar a instrução que o resultado sera colocado em uma lista
       tx.executeSql("SELECT * FROM pessoas", [], (tx, results) => {
         let lista_pessoas = [];
         for (let people = 0; people < results.rows.length; ++people) {
