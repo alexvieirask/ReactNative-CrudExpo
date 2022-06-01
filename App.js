@@ -54,21 +54,19 @@ export default function App() {
 
   // Função que adiciona uma pessoa se o input for diferente de vazio
   const addPessoa = (nome, email, idade) => {
-    if (!nome) {
-      console.log("Digite pelo menos o nome");
-    } else {
-      db.transaction((tx) => {
-        tx.executeSql(
-          "INSERT INTO pessoas (nome, email, idade) values (?, ?, ?);",
-          [nome, email, idade]
-        );
-        AddFlatlist();
-        resetarInputs();
-      });
-    }
+    !nome
+      ? console.log("Digite pelo menos o nome")
+      : db.transaction((tx) => {
+          tx.executeSql(
+            "INSERT INTO pessoas (nome, email, idade) values (?, ?, ?);",
+            [nome, email, idade]
+          );
+          AddFlatlist();
+          resetarInputs();
+        });
   };
 
-  //Função que atualiza e adiciona pessoas na flatlist
+  //Função que sincroniza a flatlist com os dados do banco de dados
   const AddFlatlist = () => {
     db.transaction((tx) => {
       // O [] Serve para dar a instrução que o resultado sera colodo na lista
@@ -108,7 +106,7 @@ export default function App() {
     });
   };
 
-  // Função que atualiza o nome de uma pessoa através do id
+  // Função que atualiza o nome da pessoa através do id
   const updatePessoa = () => {
     db.transaction((tx) => {
       tx.executeSql("update pessoas set nome=? where id =?", [

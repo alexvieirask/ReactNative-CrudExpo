@@ -3,7 +3,6 @@ import { Text, View } from "react-native";
 
 // Apenas o componente para aparecer na flatlist
 export default function pessoaItem({ pessoa }) {
-  console.log("pessoa");
   return (
     <View
       style={{
