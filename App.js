@@ -118,7 +118,7 @@ export default function App() {
     });
   };
 
-  //Função que deleta a database
+  //Função que deleta a database completamente
   const dropdatabase = () => {
     db.closeAsync();
     db.deleteAsync();
